@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Athlete Monitor</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="title">Real-Time Athlete Monitor</h1>
+            <div class="header-info">
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span class="status-text" id="statusText">Disconnected</span>
+                    <div class="error-message" id="errorMessage" style="display: none;"></div>
+                </div>
+                <div class="last-update">
+                    <span>Last Update: </span>
+                    <span id="lastUpdate">Never</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Content -->
+    <main class="main-content">
+        <!-- Health Metrics Card -->
+        <div class="card health-card">
+            <h2 class="card-title">Health Metrics</h2>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-label">Heart Rate</div>
+                    <div class="metric-value" id="heartRate">
+                        <span class="value-number">--</span>
+                        <span class="value-unit">BPM</span>
+                        <span class="trend-arrow" id="hrTrend"></span>
+                    </div>
+                    <div class="metric-status" id="hrStatus">No data</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">SpO2</div>
+                    <div class="metric-value" id="spO2">
+                        <span class="value-number">--</span>
+                        <span class="value-unit">%</span>
+                        <span class="trend-arrow" id="spO2Trend"></span>
+                    </div>
+                    <div class="metric-status" id="spO2Status">No data</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercise Tracking Card -->
+        <div class="card exercise-card">
+            <h2 class="card-title">Exercise Tracking</h2>
+            <div class="exercise-content">
+                <div class="squat-section">
+                    <div class="squat-label">Squat Count</div>
+                    <div class="squat-value" id="squatCount">0</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="squatProgress"></div>
+                    </div>
+                </div>
+                <div class="posture-section">
+                    <div class="posture-label">Posture Status</div>
+                    <div class="posture-value" id="postureStatus">
+                        <span class="posture-icon">-</span>
+                        <span class="posture-text">No data</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Charts Card -->
+        <div class="card charts-card">
+            <h2 class="card-title">
+                Real-Time Trends
+                <button class="chart-control-btn" id="chartPauseBtn">Pause</button>
+            </h2>
+            <div class="charts-container">
+                <div class="chart-wrapper">
+                    <canvas id="heartRateChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="spO2Chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status Card -->
+        <div class="card status-card">
+            <h2 class="card-title">System Status</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-label">Finger Detection</div>
+                    <div class="status-value" id="fingerDetected">
+                        <span class="status-icon">-</span>
+                        <span class="status-text-value">Unknown</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Fall Detection</div>
+                    <div class="status-value" id="fallDetected">
+                        <span class="status-icon">-</span>
+                        <span class="status-text-value">No alert</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Connection Quality</div>
+                    <div class="status-value" id="connectionQuality">
+                        <span class="quality-indicator"></span>
+                        <span class="status-text-value">N/A</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Data Points</div>
+                    <div class="status-value">
+                        <span class="status-text-value" id="dataPointCount">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Card -->
+        <div class="card controls-card">
+            <h2 class="card-title">Controls</h2>
+            <div class="controls-content">
+                <div class="connection-controls">
+                    <label for="wsUrl" class="control-label">WebSocket URL:</label>
+                    <div class="input-group">
+                        <input type="text" id="wsUrl" class="input-field" 
+                               placeholder="ws://10.165.122.115:81" 
+                               value="ws://10.165.122.115:81">
+                        <button class="btn btn-primary" id="connectBtn">Connect</button>
+                        <button class="btn btn-secondary" id="disconnectBtn">Disconnect</button>
+                    </div>
+                </div>
+                <div class="data-controls">
+                    <button class="btn btn-success" id="exportJsonBtn">Export JSON</button>
+                    <button class="btn btn-success" id="exportCsvBtn">Export CSV</button>
+                    <button class="btn btn-warning" id="clearHistoryBtn">Clear History</button>
+                </div>
+                <div class="session-info" id="sessionInfo">
+                    <div>Session Started: <span id="sessionStart">Not started</span></div>
+                    <div>Total Readings: <span id="totalReadings">0</span></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Fall Detection Alert Banner -->
+    <div class="alert-banner" id="fallAlert" style="display: none;">
+        <div class="alert-content">
+            <span class="alert-icon">🚨</span>
+            <span class="alert-text">FALL DETECTED! Please check the athlete immediately.</span>
+            <button class="alert-close" id="dismissFallAlert">×</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/storage.js"></script>
+    <script src="js/websocket.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
+
